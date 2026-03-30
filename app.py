@@ -1147,9 +1147,9 @@ if __name__ == '__main__':
     print("=" * 50)
     print(f"MongoDB: {Config.MONGO_URI}{Config.MONGO_DB}")
     print(f"MYOB Business API: {'Configured' if Config.MYOB_CLIENT_ID else 'Not configured'}")
-    print("Starting server on http://localhost:5001")
+    print("Starting server on http://localhost:2002")
     print("=" * 50)
 
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=2002, debug=True)
  
     
