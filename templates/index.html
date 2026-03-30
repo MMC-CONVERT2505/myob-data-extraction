@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - MYOB Extractor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --text-muted: #6c757d;
+            --border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --text-muted: #b0b0b0;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #0047BB 0%, #002D6E 100%);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 15px;
+        }
+
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .dark-mode .status-connected {
+            background: #1e3a24;
+            color: #d4edda;
+        }
+
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .dark-mode .status-disconnected {
+            background: #3c1e1e;
+            color: #f8d7da;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            margin-bottom: 20px;
+            border: none;
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: white;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-invoices {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-bills {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-payments {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stat-total {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        /* Dark mode table adjustments */
+        .dark-mode .table {
+            color: var(--text-color);
+        }
+
+        .dark-mode .table-hover tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+        }
+
+        .dark-mode .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .dark-mode .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        .dark-mode .form-control,
+        .dark-mode .form-select {
+            background-color: #2c2c2c;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+
+        .dark-mode .form-control:focus,
+        .dark-mode .form-select:focus {
+            background-color: #333;
+            border-color: #0047BB;
+            color: #fff;
+        }
+
+        .dark-mode .input-group-text {
+            background-color: #2c2c2c;
+            border-color: #444;
+            color: #b0b0b0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+            color: var(--text-muted);
+            font-size: 14px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        footer b {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.4rem;
+            color: #0047BB;
+            display: inline-block;
+            margin-left: 5px;
+            text-shadow: 0 0 10px rgba(0, 71, 187, 0.4);
+            animation: developerGlow 2s ease-in-out infinite alternate;
+        }
+
+        .dark-mode footer b {
+            color: #667eea;
+            text-shadow: 0 0 10px rgba(102, 126, 234, 0.4);
+        }
+
+        @keyframes developerGlow {
+            from {
+                text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+                transform: scale(1);
+            }
+
+            to {
+                text-shadow: 0 0 15px currentColor, 0 0 25px currentColor;
+                transform: scale(1.1);
+            }
+        }
+
+        .page-transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            z-index: 9999;
+            transition: opacity 0.4s ease-in-out;
+            pointer-events: none;
+        }
+
+        .fade-out {
+            opacity: 1 !important;
+        }
+
+        .fade-in {
+            opacity: 0 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="pageOverlay" class="page-transition-overlay"></div>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/myob/dashboard">
+                <i class="bi bi-arrow-left-right"></i> MYOB Extractor
+            </a>
+
+            <div class="d-flex align-items-center">
+                <!-- MYOB Connection Status -->
+                <div id="myobStatus" class="connection-status status-disconnected">
+                    <i class="bi bi-plug me-2"></i>
+                    <span>Not Connected</span>
+                </div>
+
+                <!-- Theme Toggle -->
+                <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+                    <i class="bi bi-moon-fill" id="themeIcon"></i>
+                </div>
+
+                <!-- Connect/Disconnect Button -->
+                <button id="myobActionBtn" class="btn btn-light btn-sm me-3" onclick="connectMYOB()">
+                    <i class="bi bi-plus-circle"></i> Connect MYOB
+                </button>
+
+                <!-- User Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown"
+                        data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i> <span id="userName">User</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <h6 class="dropdown-header" id="userEmail">user@example.com</h6>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#" onclick="viewProfile()">
+                                <i class="bi bi-person"></i> Profile
+                            </a></li>
+                        <li><a class="dropdown-item" href="#" onclick="viewHistory()">
+                                <i class="bi bi-clock-history"></i> Extraction History
+                            </a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item text-danger" href="/myob/api/logout">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Welcome Message -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 id="welcomeMessage">Welcome</h4>
+                        <p class="text-muted mb-0" id="currentDate"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card stat-invoices">
+                    <h5><i class="bi bi-receipt"></i> Invoices</h5>
+                    <h3 id="invoicesCount">0</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-bills">
+                    <h5><i class="bi bi-file-text"></i> Bills</h5>
+                    <h3 id="billsCount">0</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-payments">
+                    <h5><i class="bi bi-cash-coin"></i> Payments</h5>
+                    <h3 id="paymentsCount">0</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-total">
+                    <h5><i class="bi bi-database"></i> Total</h5>
+                    <h3 id="totalCount">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Overview -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-graph-up"></i> Extraction Trends</h5>
+                        <select class="form-select form-select-sm w-auto" id="trendsPeriod">
+                            <option value="7">Last 7 Days</option>
+                            <option value="30" selected>Last 30 Days</option>
+                        </select>
+                    </div>
+                    <div class="card-body">
+                        <div style="height: 300px; width: 100%;">
+                            <canvas id="trendsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Document Distribution</h5>
+                    </div>
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                        <div style="height: 250px; width: 100%;">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                        <div id="distributionLegend" class="mt-3 w-100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Extraction Panel -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-funnel"></i> Data Extraction</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Date Range Selection -->
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label font-weight-bold">1. Select Date Range</label>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" id="startDate">
+                                    <span class="input-group-text">to</span>
+                                    <input type="date" class="form-control" id="endDate">
+                                </div>
+                            </div>
+
+                            <!-- Output Format -->
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label font-weight-bold">2. Output Format</label>
+                                <select class="form-select" id="outputFormat">
+                                    <option value="qbo">QuickBooks Online (QBO)</option>
+                                    <option value="xero">Xero</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label font-weight-bold">3. Extraction Status</label>
+                                <div id="statusIndicator" class="text-muted">Ready to extract</div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <label class="form-label font-weight-bold">4. Select Data to Extract</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <!-- Invoices Group -->
+                                    <div class="btn-group mb-2">
+                                        <button class="btn btn-outline-primary dropdown-toggle" type="button"
+                                            data-bs-toggle="dropdown">
+                                            <i class="bi bi-receipt"></i> Invoices
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#"
+                                                    onclick="startExtraction('invoice_item')">Item Invoices</a></li>
+                                            <li><a class="dropdown-item" href="#"
+                                                    onclick="startExtraction('invoice_service')">Service Invoices</a>
+                                            </li>
+                                            <li><a class="dropdown-item" href="#"
+                                                    onclick="startExtraction('invoice_professional')">Professional
+                                                    Invoices</a></li>
+                                            <li><a class="dropdown-item" href="#"
+                                                    onclick="startExtraction('invoice_miscellaneous')">Misc Invoices</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Bills Group -->
+                                    <div class="btn-group mb-2">
+                                        <button class="btn btn-outline-danger dropdown-toggle" type="button"
+                                            data-bs-toggle="dropdown">
+                                            <i class="bi bi-file-text"></i> Bills
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#"
+                                                    onclick="startExtraction('bill_item')">Item Bills</a></li>
+                                            <li><a class="dropdown-item" href="#"
+                                                    onclick="startExtraction('bill_service')">Service Bills</a></li>
+                                            <li><a class="dropdown-item" href="#"
+                                                    onclick="startExtraction('bill_professional')">Professional
+                                                    Bills</a></li>
+                                            <li><a class="dropdown-item" href="#"
+                                                    onclick="startExtraction('bill_miscellaneous')">Misc Bills</a></li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Credits Group -->
+                                    <button class="btn btn-outline-warning mb-2"
+                                        onclick="startExtraction('credit_notes')">
+                                        <i class="bi bi-arrow-return-left"></i> Credit Notes
+                                    </button>
+                                    <button class="btn btn-outline-warning mb-2"
+                                        onclick="startExtraction('vendor_credits')">
+                                        <i class="bi bi-arrow-return-right"></i> Vendor Credits
+                                    </button>
+
+                                    <!-- Payments Group -->
+                                    <button class="btn btn-outline-success mb-2"
+                                        onclick="startExtraction('invoice_payments')">
+                                        <i class="bi bi-cash"></i> Invoice Payments
+                                    </button>
+                                    <button class="btn btn-outline-success mb-2"
+                                        onclick="startExtraction('bill_payments')">
+                                        <i class="bi bi-cash-stack"></i> Bill Payments
+                                    </button>
+
+                                    
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div id="extractionProgress" style="display: none;">
+                            <div class="progress mb-3">
+                                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                                    style="width: 0%"></div>
+                            </div>
+                            <div id="progressMessage" class="text-center text-muted"></div>
+                        </div>
+
+                        <!-- Results -->
+                        <div id="extractionResults" style="display: none;">
+                            <div class="alert alert-success">
+                                <h6><i class="bi bi-check-circle"></i> Extraction Complete!</h6>
+                                <p id="resultsMessage"></p>
+
+                                <!-- MYOB Data Downloads -->
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>
+                                            <i class="bi bi-file-earmark-spreadsheet"></i>
+                                            <strong>MYOB Data:</strong> <span id="recordCountRaw">0 records</span>
+                                        </span>
+                                    </div>
+                                    <div class="btn-group d-flex gap-2" role="group">
+                                        <button class="btn btn-outline-secondary btn-sm"
+                                            onclick="downloadFile('csv', 'raw')">
+                                            <i class="bi bi-file-earmark-text"></i> CSV
+                                        </button>
+                                        <button class="btn btn-outline-success btn-sm"
+                                            onclick="downloadFile('xlsx', 'raw')">
+                                            <i class="bi bi-file-earmark-excel"></i> Excel
+                                        </button>
+                                        <button class="btn btn-outline-primary btn-sm"
+                                            onclick="downloadFile('json', 'raw')">
+                                            <i class="bi bi-file-earmark-code"></i> JSON
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Converted Data Downloads -->
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>
+                                            <i class="bi bi-file-earmark-check"></i>
+                                            <strong>Converted:</strong> <span id="recordCountConverted">0 records</span>
+                                            (<span id="formatLabel">QBO</span>)
+                                        </span>
+                                    </div>
+                                    <div class="btn-group d-flex gap-2" role="group">
+                                        <button class="btn btn-outline-secondary btn-sm"
+                                            onclick="downloadFile('csv', 'converted')">
+                                            <i class="bi bi-file-earmark-text"></i> CSV
+                                        </button>
+                                        <button class="btn btn-success btn-sm"
+                                            onclick="downloadFile('xlsx', 'converted')">
+                                            <i class="bi bi-file-earmark-excel"></i> Excel
+                                        </button>
+                                        <button class="btn btn-primary btn-sm"
+                                            onclick="downloadFile('json', 'converted')">
+                                            <i class="bi bi-file-earmark-code"></i> JSON
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Information Panel -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-info-circle"></i> How to Use</h6>
+                    </div>
+                    <div class="card-body">
+                        <ol class="mb-0">
+                            <li>Connect your MYOB account using the button above</li>
+                            <li>Select date range for data extraction</li>
+                            <li>Choose data type and output format</li>
+                            <li>Click "Extract" to process data</li>
+                            <li>Download the CSV file for import</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-clock-history"></i> Recent Extractions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentHistory">
+                            <p class="text-muted mb-0">No recent extractions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            Developed by <b>AMAN GUPTA</b>
+        </footer>
+
+        <!-- History Modal -->
+        <div class="modal fade" id="historyModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-clock-history"></i> Extraction History</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Period</th>
+                                        <th>Format</th>
+                                        <th>Records</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody">
+                                    <!-- History will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Modal -->
+        <div class="modal fade" id="profileModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-person"></i> User Profile</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="profileInfo">
+                            <!-- Profile info will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            let currentExtraction = null;
+
+            // Initialize on page load
+            document.addEventListener('DOMContentLoaded', function () {
+                checkAuth();
+                loadUserInfo();
+                loadMYOBStatus();
+                updateDate();
+                loadRecentHistory();
+
+                // Explicitly clear date fields to prevent browser restoration
+                document.getElementById('startDate').value = '';
+                document.getElementById('endDate').value = '';
+
+                initTheme(); // Initialize theme
+            });
+
+            // Theme management
+            function initTheme() {
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                    updateThemeIcon(true);
+                }
+            }
+
+            function toggleTheme() {
+                const isDark = document.body.classList.toggle('dark-mode');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                updateThemeIcon(isDark);
+            }
+
+            function updateThemeIcon(isDark) {
+                const icon = document.getElementById('themeIcon');
+                if (isDark) {
+                    icon.classList.replace('bi-moon-fill', 'bi-sun-fill');
+                } else {
+                    icon.classList.replace('bi-sun-fill', 'bi-moon-fill');
+                }
+            }
+
+            // Check authentication
+            async function checkAuth() {
+                try {
+                    const response = await fetch('/myob/api/check-auth');
+                    const data = await response.json();
+
+                    if (!data.authenticated) {
+                        window.location.href = '/login';
+                    }
+                } catch (error) {
+                    window.location.href = '/login';
+                }
+            }
+
+            // Load user information
+            async function loadUserInfo() {
+                try {
+                    const response = await fetch('/myob/api/user-info');
+                    const user = await response.json();
+
+                    if (user.error) {
+                        window.location.href = '/login';
+                        return;
+                    }
+
+                    document.getElementById('userName').textContent = user.full_name;
+                    document.getElementById('userEmail').textContent = user.email;
+                    document.getElementById('welcomeMessage').textContent = `Welcome, ${user.full_name}`;
+                } catch (error) {
+                    console.error('Error loading user info:', error);
+                }
+            }
+
+            // Load MYOB connection status
+            async function loadMYOBStatus() {
+                try {
+                    const response = await fetch('/myob/api/myob/status');
+                    const status = await response.json();
+
+                    const statusEl = document.getElementById('myobStatus');
+                    const actionBtn = document.getElementById('myobActionBtn');
+
+                    if (status.connected) {
+                        statusEl.className = 'connection-status status-connected';
+                        statusEl.innerHTML = `<i class="bi bi-check-circle me-2"></i><span>Connected: ${status.business_name || status.company_name || 'MYOB'}</span>`;
+
+                        actionBtn.innerHTML = '<i class="bi bi-x-circle"></i> Disconnect';
+                        actionBtn.className = 'btn btn-outline-light btn-sm me-3';
+                        actionBtn.onclick = disconnectMYOB;
+                        showSuccessAlert('Successfully connected to MYOB!');
+                    } else {
+                        statusEl.className = 'connection-status status-disconnected';
+                        statusEl.innerHTML = '<i class="bi bi-x-circle me-2"></i><span>Not Connected</span>';
+
+                        actionBtn.innerHTML = '<i class="bi bi-plus-circle"></i> Connect MYOB';
+                        actionBtn.className = 'btn btn-light btn-sm me-3';
+                        actionBtn.onclick = connectMYOB;
+                    }
+                } catch (error) {
+                    console.error('Error loading MYOB status:', error);
+                }
+            }
+
+            // Success alert function
+            function showSuccessAlert(message) {
+
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3';
+                alertDiv.style.zIndex = '9999';
+                alertDiv.innerHTML = `
+                <i class="bi bi-check-circle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+                document.body.appendChild(alertDiv);
+
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            }
+
+            // Connect to MYOB
+            function connectMYOB() {
+                window.location.href = '/myob/connect';
+            }
+
+            // Disconnect MYOB
+            async function disconnectMYOB() {
+                if (confirm('Are you sure you want to disconnect from MYOB?')) {
+                    const response = await fetch('/myob/api/myob/disconnect', { method: 'POST' });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        loadMYOBStatus();
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                }
+            }
+
+
+
+            // Update current date
+            function updateDate() {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+            }
+
+            // Start data extraction
+            async function startExtraction(dataType) {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                const outputFormat = document.getElementById('outputFormat').value;
+                const statusIndicator = document.getElementById('statusIndicator');
+
+                if (!startDate || !endDate) {
+                    alert('Please select date range');
+                    return;
+                }
+
+                if (new Date(startDate) > new Date(endDate)) {
+                    alert('Start date cannot be after end date');
+                    return;
+                }
+
+                if (!dataType) {
+                    alert('Please select a data category to extract');
+                    return;
+                }
+
+                // Show progress
+                document.getElementById('extractionProgress').style.display = 'block';
+                document.getElementById('extractionResults').style.display = 'none';
+                statusIndicator.textContent = `Extracting ${dataType.replace('_', ' ')}...`;
+                updateProgress(`Starting ${dataType.replace('_', ' ')} extraction...`, 10);
+
+                try {
+                    const response = await fetch('/myob/api/extract', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            start_date: startDate,
+                            end_date: endDate,
+                            data_type: dataType,
+                            format: outputFormat
+                        })
+                    });
+
+                    updateProgress('Processing response...', 40);
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        updateProgress('Formatting data...', 70);
+                        currentExtraction = result;
+
+                        // Update stats
+                        updateStats(result.total_records, dataType);
+
+                        // Update results display
+                        document.getElementById('resultsMessage').textContent = result.message;
+                        document.getElementById('recordCountRaw').textContent = `${result.total_records} records`;
+                        document.getElementById('recordCountConverted').textContent = `${result.total_records} records`;
+                        document.getElementById('formatLabel').textContent = outputFormat.toUpperCase();
+
+                        updateProgress('Complete!', 100);
+                        statusIndicator.textContent = 'Last extraction complete';
+
+                        setTimeout(() => {
+                            document.getElementById('extractionResults').style.display = 'block';
+                            document.getElementById('extractionProgress').style.display = 'none';
+                            loadRecentHistory();
+                        }, 500);
+
+                    } else {
+                        updateProgress('Error: ' + result.message, 100, 'error');
+                        statusIndicator.textContent = 'Extraction failed';
+                        setTimeout(() => {
+                            document.getElementById('extractionProgress').style.display = 'none';
+                        }, 2000);
+                        alert('Extraction failed: ' + result.message);
+                    }
+
+                } catch (error) {
+                    updateProgress('Error: ' + error.message, 100, 'error');
+                    statusIndicator.textContent = 'Extraction failed';
+                    setTimeout(() => {
+                        document.getElementById('extractionProgress').style.display = 'none';
+                    }, 2000);
+                    alert('Extraction failed: ' + error.message);
+                }
+            }
+
+            // Update progress bar
+            function updateProgress(message, percentage, type = 'success') {
+                const progressBar = document.getElementById('progressBar');
+                const progressMessage = document.getElementById('progressMessage');
+
+                progressBar.style.width = percentage + '%';
+                progressMessage.textContent = message;
+
+                if (type === 'error') {
+                    progressBar.className = 'progress-bar progress-bar-striped bg-danger';
+                }
+            }
+
+            // Update statistics
+            function updateStats(totalRecords, dataType) {
+                const invoicesCount = document.getElementById('invoicesCount');
+                const billsCount = document.getElementById('billsCount');
+                const paymentsCount = document.getElementById('paymentsCount');
+                const totalCount = document.getElementById('totalCount');
+
+                // Simple calculation for demo
+                let invoices = 0, bills = 0, payments = 0;
+
+                if (dataType === 'all') {
+                    invoices = Math.floor(totalRecords * 0.4);
+                    bills = Math.floor(totalRecords * 0.3);
+                    payments = totalRecords - invoices - bills;
+                } else if (dataType === 'invoices') {
+                    invoices = totalRecords;
+                } else if (dataType === 'bills') {
+                    bills = totalRecords;
+                } else if (dataType === 'payments') {
+                    payments = totalRecords;
+                }
+
+                // Update counts
+                invoicesCount.textContent = parseInt(invoicesCount.textContent) + invoices;
+                billsCount.textContent = parseInt(billsCount.textContent) + bills;
+                paymentsCount.textContent = parseInt(paymentsCount.textContent) + payments;
+                totalCount.textContent = parseInt(totalCount.textContent) + totalRecords;
+            }
+
+            // Download files in different formats
+            function downloadFile(fileType, dataType) {
+                if (!currentExtraction) {
+                    alert('No extraction data available');
+                    return;
+                }
+
+                let url = '';
+
+                if (dataType === 'raw') {
+                    // MYOB Data downloads
+                    if (fileType === 'csv') {
+                        url = currentExtraction.raw_download_url;
+                    } else if (fileType === 'xlsx') {
+                        url = currentExtraction.raw_xlsx_download_url;
+                    } else if (fileType === 'json') {
+                        url = currentExtraction.raw_json_download_url;
+                    }
+                } else if (dataType === 'converted') {
+                    // Converted data downloads
+                    if (fileType === 'csv') {
+                        url = currentExtraction.download_url;
+                    } else if (fileType === 'xlsx') {
+                        url = currentExtraction.xlsx_download_url;
+                    } else if (fileType === 'json') {
+                        url = currentExtraction.json_download_url;
+                    }
+                }
+
+                if (url) {
+                    window.open(url, '_blank');
+                } else {
+                    alert('File not available');
+                }
+            }
+
+            // Legacy functions for backward compatibility
+            function downloadResults() {
+                downloadFile('csv', 'converted');
+            }
+
+            function downloadRawResults() {
+                downloadFile('csv', 'raw');
+            }
+
+            // Load recent extraction history
+            async function loadRecentHistory() {
+                try {
+                    const response = await fetch('/myob/api/history');
+                    const data = await response.json();
+
+                    const historyDiv = document.getElementById('recentHistory');
+
+                    if (data.history && data.history.length > 0) {
+                        let html = '<div class="list-group">';
+
+                        data.history.slice(0, 3).forEach(item => {
+                            const date = new Date(item.created_at).toLocaleDateString();
+                            html += `
+                            <div class="list-group-item border-0 px-0 py-2">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>${item.extraction_type}</strong>
+                                        <div class="text-muted small">${date} • ${item.records_extracted} records</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-secondary d-block mb-1">${item.output_format.toUpperCase()}</span>
+                                        ${item.raw_file_path ? `<a href="/download/${item.raw_file_path.split('/').pop()}" class="btn btn-link btn-sm p-0 text-muted" title="MYOB Data"><i class="bi bi-file-earmark-spreadsheet"></i></a>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        });
+
+                        html += '</div>';
+                        historyDiv.innerHTML = html;
+                    } else {
+                        historyDiv.innerHTML = '<p class="text-muted mb-0">No recent extractions</p>';
+                    }
+                } catch (error) {
+                    console.error('Error loading history:', error);
+                }
+            }
+
+            // View full history
+            async function viewHistory() {
+                try {
+                    const response = await fetch('/myob/api/history');
+                    const data = await response.json();
+
+                    const tbody = document.getElementById('historyTableBody');
+
+                    if (data.history && data.history.length > 0) {
+                        let html = '';
+
+                        data.history.forEach(item => {
+                            const date = new Date(item.created_at).toLocaleDateString();
+                            const startDate = new Date(item.start_date).toLocaleDateString();
+                            const endDate = new Date(item.end_date).toLocaleDateString();
+
+                            html += `
+                            <tr>
+                                <td>${date}</td>
+                                <td>${item.extraction_type}</td>
+                                <td>${startDate} to ${endDate}</td>
+                                <td><span class="badge bg-secondary">${item.output_format.toUpperCase()}</span></td>
+                                <td>${item.records_extracted}</td>
+                                <td class="text-nowrap">
+                                    ${item.raw_file_path ?
+                                    `<button class="btn btn-sm btn-outline-secondary me-1" onclick="downloadHistoryFile('${item.raw_file_path}')" title="Download MYOB Data">
+                                            <i class="bi bi-file-earmark-spreadsheet"></i>
+                                        </button>` : ''}
+                                    ${item.file_path ?
+                                    `<button class="btn btn-sm btn-success" onclick="downloadHistoryFile('${item.file_path}')" title="Download Converted">
+                                            <i class="bi bi-download"></i>
+                                        </button>` : ''}
+                                </td>
+                            </tr>
+                        `;
+                        });
+
+                        tbody.innerHTML = html;
+                    } else {
+                        tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                No extraction history found
+                            </td>
+                        </tr>
+                    `;
+                    }
+
+                    // Show modal
+                    new bootstrap.Modal(document.getElementById('historyModal')).show();
+                } catch (error) {
+                    console.error('Error loading history:', error);
+                }
+            }
+
+            // Download history file
+            function downloadHistoryFile(filePath) {
+                const filename = filePath.split('/').pop();
+                window.open(`/download/${filename}`, '_blank');
+            }
+
+            // View profile
+            async function viewProfile() {
+                try {
+                    const response = await fetch('/myob/api/user-info');
+                    const user = await response.json();
+
+                    const profileInfo = document.getElementById('profileInfo');
+
+                    profileInfo.innerHTML = `
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" value="${user.full_name}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-control" value="${user.email}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Company Name</label>
+                        <input type="text" class="form-control" value="${user.company_name || 'Not set'}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Account Role</label>
+                        <input type="text" class="form-control" value="${user.role}" readonly>
+                    </div>
+                `;
+
+                    // Show modal
+                    new bootstrap.Modal(document.getElementById('profileModal')).show();
+                } catch (error) {
+                    console.error('Error loading profile:', error);
+                }
+            }
+            // Page Transition Logic
+            window.addEventListener('load', () => {
+                const overlay = document.getElementById('pageOverlay');
+                overlay.classList.add('fade-in');
+            });
+
+            document.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', e => {
+                    const href = link.getAttribute('href');
+                    if (href && !href.startsWith('#') && !href.startsWith('javascript:') && !link.getAttribute('target')) {
+                        const currentUrl = window.location.pathname;
+                        if (href !== currentUrl && !href.includes('logout')) {
+                            e.preventDefault();
+                            document.getElementById('pageOverlay').classList.remove('fade-in');
+                            document.getElementById('pageOverlay').classList.add('fade-out');
+                            setTimeout(() => {
+                                window.location.href = href;
+                            }, 400);
+                        }
+                    }
+                });
+            });
+
+            // Add logout transition
+            const logoutBtn = document.querySelector('a[href="/api/logout"]');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('pageOverlay').classList.remove('fade-in');
+                    document.getElementById('pageOverlay').classList.add('fade-out');
+                    setTimeout(() => {
+                        window.location.href = '/api/logout';
+                    }, 400);
+                });
+            }
+
+            // Load Dashboard Statistics
+            async function loadDashboardStats() {
+                try {
+                    const response = await fetch('/myob/api/dashboard/stats');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // animate numbers
+                        animateValue(document.getElementById('invoicesCount'), 0, data.stats.invoices, 1000);
+                        animateValue(document.getElementById('billsCount'), 0, data.stats.bills, 1000);
+                        animateValue(document.getElementById('paymentsCount'), 0, data.stats.payments, 1000);
+                        animateValue(document.getElementById('totalCount'), 0, data.stats.total, 1000);
+
+                        // Update charts with real data if available
+                        if (data.trends && data.trends.labels.length > 0) {
+                            updateCharts(data.trends, data.stats);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading stats:', error);
+                }
+            }
+
+            function animateValue(obj, start, end, duration) {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    obj.innerHTML = Math.floor(progress * (end - start) + start);
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+
+            // Charts
+            let trendsChart, distributionChart;
+
+            function initAnalytics() {
+                const ctxTrends = document.getElementById('trendsChart').getContext('2d');
+                const ctxDistribution = document.getElementById('distributionChart').getContext('2d');
+
+                const isDark = document.body.classList.contains('dark-mode');
+                const textColor = isDark ? '#b0b0b0' : '#6c757d';
+                const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+                // Trends Chart (Empty Init)
+                trendsChart = new Chart(ctxTrends, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Records Extracted',
+                            data: [],
+                            borderColor: '#4facfe',
+                            backgroundColor: 'rgba(79, 172, 254, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#4facfe',
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: gridColor },
+                                ticks: { color: textColor }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: textColor }
+                            }
+                        }
+                    }
+                });
+
+                // Distribution Chart (Empty Init)
+                distributionChart = new Chart(ctxDistribution, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Invoices', 'Bills', 'Payments'],
+                        datasets: [{
+                            data: [0, 0, 0],
+                            backgroundColor: ['#667eea', '#f5576c', '#43e97b'],
+                            borderWidth: 0,
+                            hoverOffset: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: textColor, padding: 20 }
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+
+            function updateCharts(trendsData, statsData) {
+                if (trendsChart) {
+                    trendsChart.data.labels = trendsData.labels;
+                    trendsChart.data.datasets[0].data = trendsData.data;
+                    trendsChart.update();
+                }
+
+                if (distributionChart) {
+                    distributionChart.data.datasets[0].data = [
+                        statsData.invoices,
+                        statsData.bills,
+                        statsData.payments
+                    ];
+                    distributionChart.update();
+                }
+            }
+
+            // Sync charts with theme changes
+            function updateChartsTheme() {
+                if (!trendsChart || !distributionChart) return;
+
+                const isDark = document.body.classList.contains('dark-mode');
+                const textColor = isDark ? '#b0b0b0' : '#6c757d';
+                const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+                trendsChart.options.scales.y.grid.color = gridColor;
+                trendsChart.options.scales.y.ticks.color = textColor;
+                trendsChart.options.scales.x.ticks.color = textColor;
+                trendsChart.update();
+
+                distributionChart.options.plugins.legend.labels.color = textColor;
+                distributionChart.update();
+            }
+
+            // Call on load
+            document.addEventListener('DOMContentLoaded', () => {
+                initAnalytics();
+                loadDashboardStats(); // Load real data
+            });
+
+            // Update toggleTheme to sync charts
+            const originalToggleTheme = window.toggleTheme;
+            window.toggleTheme = function () {
+                if (originalToggleTheme) originalToggleTheme();
+                updateChartsTheme();
+            };
+
+        </script>
+</body>
+
+</html>

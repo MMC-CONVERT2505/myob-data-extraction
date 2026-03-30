@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select MYOB Business</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .business-list {
+            margin: 20px 0;
+        }
+        .business-item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .business-item:hover {
+            background-color: #f8f9fa;
+        }
+        .business-item.selected {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+        label {
+            cursor: pointer;
+            display: block;
+        }
+        .business-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .business-id {
+            color: #666;
+            font-size: 0.9em;
+        }
+        button {
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #1976d2;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Select Your MYOB Business</h1>
+        <p>Choose which business you want to connect to:</p>
+        
+        <form action="/myob/business/select" method="POST">
+            <div class="business-list">
+                {% for business in company_files %}
+                <div class="business-item">
+                    <label>
+                        <input type="radio" name="business_id" value="{{ business.id }}" required>
+                        <div class="business-name">{{ business.name }}</div>
+                        <div class="business-id">ID: {{ business.id }}</div>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <button type="submit" id="connectBtn">Connect to Selected Business</button>
+        </form>
+    </div>
+
+    <script>
+        // Add selection styling
+        const businessItems = document.querySelectorAll('.business-item');
+        const connectBtn = document.getElementById('connectBtn');
+        
+        businessItems.forEach(item => {
+            const radio = item.querySelector('input[type="radio"]');
+            radio.addEventListener('change', function() {
+                // Remove selected class from all items
+                businessItems.forEach(i => i.classList.remove('selected'));
+                // Add selected class to current item
+                if (this.checked) {
+                    item.classList.add('selected');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
